@@ -1,11 +1,23 @@
 function compareEmailsAndShowAlert() {
+
+  var url = "";  //input imported CSV url here
+
+  // Fetch the CSV content from the URL
+  var response = UrlFetchApp.fetch(url);
+  var csvData = response.getContentText();
+
+  // Parse the CSV data into a 2D array
+  var data2 = Utilities.parseCsv(csvData);
+
+
+  //Get active spreadsheet
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet1 = ss.getSheetByName("Deduper");
-  var sheet2 = ss.getSheetByName("trevorExport");
+  var sheet1 = ss.getActiveSheet();
+
   
   // Get the data from both sheets
   var data1 = sheet1.getRange("A:A").getValues();
-  var data2 = sheet2.getRange("A:Q").getValues(); // Entire possible range
+
   
   // Create a map of email addresses and their corresponding information from the second sheet
   var emailInfoMap = {};
@@ -35,6 +47,8 @@ function compareEmailsAndShowAlert() {
   }
   
   var foundEmails = [];
+  var foundEmailsActive = [];
+  var foundEmailsInactive = [];
   var notFoundEmails = [];
   var revokeEmails = []; // Store emails with the same externalID as foundEmails but not present in foundEmails
   var duplicateEmails = {};
@@ -44,6 +58,7 @@ function compareEmailsAndShowAlert() {
   // Loop through the first sheet to compare emails and check for duplicates
   for (var i = 0; i < data1.length; i++) {
     var email = data1[i][0].toString().trim().toLowerCase();
+
     
     // Validate email with regex pattern
     var emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -100,11 +115,25 @@ function compareEmailsAndShowAlert() {
   var message = "";
   
   if (foundEmails.length > 0) {
-    message += "Existing Users (" + foundEmails.length + "):\n";
+    message += "TOTAL COUNT (" + foundEmails.length + "):\n";
+    message += "Existing Users [ACTIVE] :\n";
     
     for (var j = 0; j < foundEmails.length; j++) {
       var emailInfo = foundEmails[j];
-      message += emailInfo.email + " (externalCustomerID: " + emailInfo.externalID + ", status: " + emailInfo.status + ", customerType: " + emailInfo.customerType + ")\n";
+      if (emailInfo.status === "Active"){
+      message += emailInfo.email + " (CustomerID: " + emailInfo.externalID + ", status: " + emailInfo.status + ", customerType: " + emailInfo.customerType + ")\n";
+      }
+    }
+  }
+
+    if (foundEmails.length > 0) {
+    message += "\nExisting Users [INACTIVE]:\n";
+    
+    for (var j = 0; j < foundEmails.length; j++) {
+      var emailInfo = foundEmails[j];
+      if (emailInfo.status === "Inactive"){
+      message += emailInfo.email + " (CustomerID: " + emailInfo.externalID + ", status: " + emailInfo.status + ", customerType: " + emailInfo.customerType + ")\n";
+      }
     }
   }
   
@@ -130,7 +159,7 @@ function compareEmailsAndShowAlert() {
     message += "\nRevoke (" + revokeEmails.length + "):\n";
     
     for (var l = 0; l < revokeEmails.length; l++) {
-      message += revokeEmails[l] + "\n";
+      message += revokeEmails[l]  + " (CustomerID: " + emailInfo.externalID + ", status: " + emailInfo.status + ", customerType: " + emailInfo.customerType + ")\n";
     }
   }
   
