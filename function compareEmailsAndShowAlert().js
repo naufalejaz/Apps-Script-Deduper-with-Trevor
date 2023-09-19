@@ -47,8 +47,6 @@ function compareEmailsAndShowAlert() {
   }
   
   var foundEmails = [];
-  var foundEmailsActive = [];
-  var foundEmailsInactive = [];
   var notFoundEmails = [];
   var revokeEmails = []; // Store emails with the same externalID as foundEmails but not present in foundEmails
   var duplicateEmails = {};
